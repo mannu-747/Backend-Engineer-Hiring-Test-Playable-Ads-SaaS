@@ -1,0 +1,15 @@
+
+fastapi
+uvicorn[standard]
+sqlalchemy
+alembic
+pydantic
+python-multipart
+celery[redis]==5.2.7
+redis
+aiofiles
+python-jose[cryptography]
+passlib[bcrypt]
+python-dotenv
+psycopg2-binary
+boto3

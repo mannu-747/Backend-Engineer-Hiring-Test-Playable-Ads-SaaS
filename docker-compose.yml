@@ -1,0 +1,49 @@
+
+version: '3.8'
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  api:
+    build: .
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - .:/app
+      - ./uploads:/app/uploads
+      - ./outputs:/app/outputs
+    ports:
+      - "8000:8000"
+    environment:
+      - CELERY_BROKER=redis://redis:6379/0
+      - DATABASE_URL=sqlite:///./db.sqlite
+    depends_on:
+      - redis
+
+  worker:
+    build: .
+    command: celery -A app.workers.celery_worker.celery_app worker --loglevel=info
+    volumes:
+      - .:/app
+      - ./uploads:/app/uploads
+      - ./outputs:/app/outputs
+    environment:
+      - CELERY_BROKER=redis://redis:6379/0
+      - DATABASE_URL=sqlite:///./db.sqlite
+    depends_on:
+      - redis
+  postgres:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: playable
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: playable_ads
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
